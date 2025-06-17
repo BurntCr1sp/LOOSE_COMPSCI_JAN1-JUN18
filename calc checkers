@@ -1,0 +1,124 @@
+' Initialize variables
+Dim board(8, 8)  ' 8x8 grid for the board
+Dim currentPlayer As Integer  ' 1 for player 1 (human), 2 for player 2 (bot)
+currentPlayer = 1  ' Start with player 1 (human)
+
+' Function to initialize the board
+Sub initBoard
+  For i = 1 To 8
+    For j = 1 To 8
+      If (i + j) Mod 2 = 0 Then
+        board(i, j) = 0 ' Empty square
+      Else
+        If i <= 3 Then
+          board(i, j) = 1 ' Player 1's pieces (human)
+        ElseIf i >= 6 Then
+          board(i, j) = 2 ' Player 2's pieces (bot)
+        Else
+          board(i, j) = 0 ' Empty squares in the middle
+        End If
+      End If
+    Next j
+  Next i
+End Sub
+
+' Function to display the board
+Sub displayBoard
+  ClrScr
+  For i = 1 To 8
+    For j = 1 To 8
+      If board(i, j) = 0 Then
+        Print ".";
+      ElseIf board(i, j) = 1 Then
+        Print "O";
+      ElseIf board(i, j) = 2 Then
+        Print "X";
+      End If
+    Next j
+    Print
+  Next i
+End Sub
+
+' Function to check if the move is valid
+Sub moveIsValid(x1, y1, x2, y2) As Boolean
+  ' This will need logic for diagonal moves, captures, and bounds checking
+  If board(x1, y1) = 0 Or board(x2, y2) <> 0 Then
+    moveIsValid = False
+    Return
+  End If
+  ' Add additional logic for move rules
+  moveIsValid = True
+End Sub
+
+' Function to get a list of valid moves for the bot
+Sub getBotMoves() As List
+  ' For simplicity, let's generate a list of all possible valid moves for the bot
+  Dim moves(64, 2) ' Store valid moves
+  Dim moveCount As Integer
+  moveCount = 0
+  
+  For x1 = 1 To 8
+    For y1 = 1 To 8
+      If board(x1, y1) = 2 Then  ' Bot's piece
+        ' Check diagonal moves, etc., and store valid ones
+        For x2 = 1 To 8
+          For y2 = 1 To 8
+            If moveIsValid(x1, y1, x2, y2) Then
+              moves(moveCount, 1) = x1
+              moves(moveCount, 2) = y1
+              moves(moveCount, 3) = x2
+              moves(moveCount, 4) = y2
+              moveCount = moveCount + 1
+            End If
+          Next y2
+        Next x2
+      End If
+    Next y1
+  Next x1
+  
+  getBotMoves = moves
+End Sub
+
+' Function to make the bot's move
+Sub botMove
+  ' Get all possible moves for the bot
+  Dim moves() As List
+  moves = getBotMoves()
+  
+  ' Select a random move
+  If UBound(moves) >= 0 Then
+    Randomize
+    Dim randIndex As Integer
+    randIndex = Int(Rnd * (UBound(moves) + 1))
+    
+    ' Move the bot's piece
+    Dim x1, y1, x2, y2 As Integer
+    x1 = moves(randIndex, 1)
+    y1 = moves(randIndex, 2)
+    x2 = moves(randIndex, 3)
+    y2 = moves(randIndex, 4)
+    
+    board(x2, y2) = 2  ' Move bot's piece
+    board(x1, y1) = 0  ' Remove the piece from the old location
+  End If
+End Sub
+
+' Main game loop
+Do
+  displayBoard
+  
+  If currentPlayer = 1 Then
+    ' Human player's move (input from the user)
+    Input "Enter move for player "; currentPlayer; ": ", moveX, moveY
+    ' Validate and make move
+    If moveIsValid(moveX, moveY) Then
+      board(moveX, moveY) = currentPlayer
+      currentPlayer = 2  ' Switch to bot's turn
+    End If
+  Else
+    ' Bot's turn
+    botMove
+    currentPlayer = 1  ' Switch to human's turn
+  End If
+  
+Loop Until gameOver()
